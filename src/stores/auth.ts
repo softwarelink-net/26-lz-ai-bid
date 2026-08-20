@@ -1,95 +1,52 @@
-import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { login as apiLogin } from '@/composables/useApi'
+import { ROLE_LABELS, type AuthUser, type Role } from '@/types'
 
-export type UserRole =
-  | 'ROLE_SUPER_ADMIN'
-  | 'ROLE_CDC_EXPERT'
-  | 'ROLE_CLINICAL_DOCTOR'
-  | 'ROLE_OPS_ENGINEER'
-
-interface DemoUser {
-  email: string
-  password: string
-  role: UserRole
-  realName: string
-  organization: string
-}
-
-const demoUsers: DemoUser[] = [
-  {
-    email: 'admin@lzcdc.cn',
-    password: 'Admin@2026',
-    role: 'ROLE_SUPER_ADMIN',
-    realName: '系统管理员',
-    organization: '泸州市疾病预防控制中心',
-  },
-  {
-    email: 'expert@lzcdc.cn',
-    password: 'Expert@2026',
-    role: 'ROLE_CDC_EXPERT',
-    realName: '疾控质控专家',
-    organization: '泸州市疾控中心结核病防制科',
-  },
-  {
-    email: 'doctor@lzcdc.cn',
-    password: 'Doctor@2026',
-    role: 'ROLE_CLINICAL_DOCTOR',
-    realName: '临床医生',
-    organization: '基层医疗机构',
-  },
-  {
-    email: 'ops@lzcdc.cn',
-    password: 'Ops@2026',
-    role: 'ROLE_OPS_ENGINEER',
-    realName: '运维工程师',
-    organization: '运营服务技术支持中心',
-  },
-]
+const TOKEN_KEY = 'lz_ai_token'
+const USER_KEY = 'lz_ai_user'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('lz_ai_token'))
-  const currentUser = ref<DemoUser | null>(null)
+  const token = ref(localStorage.getItem(TOKEN_KEY) || '')
+  const user = ref<AuthUser | null>(JSON.parse(localStorage.getItem(USER_KEY) || 'null'))
 
-  const isAuthed = computed(() => !!token.value && !!currentUser.value)
+  const isAuthenticated = computed(() => !!token.value && !!user.value)
+  const role = computed(() => (user.value?.role || '') as Role | '')
+  const roleLabel = computed(() => (role.value ? ROLE_LABELS[role.value as Role] : ''))
+  const displayName = computed(() => user.value?.real_name || user.value?.username || '访客')
 
-  function restoreSession() {
-    const saved = localStorage.getItem('lz_ai_user')
-    if (saved) {
-      currentUser.value = JSON.parse(saved) as DemoUser
-    }
+  function hasRole(roles: string[] = []) {
+    if (!roles.length) return true
+    if (role.value === 'ROLE_SUPER_ADMIN') return true
+    return roles.includes(role.value)
   }
 
-  function login(email: string, password: string) {
-    const user = demoUsers.find((u) => u.email === email && u.password === password)
-    if (!user) return false
-
-    token.value = `demo-token-${Date.now()}`
-    currentUser.value = user
-    localStorage.setItem('lz_ai_token', token.value)
-    localStorage.setItem('lz_ai_user', JSON.stringify(user))
-    return true
+  async function login(username: string, password: string) {
+    const res = await apiLogin(username, password)
+    if (!res.success) throw new Error(res.error || '登录失败')
+    token.value = res.token as string
+    user.value = res.user as AuthUser
+    localStorage.setItem(TOKEN_KEY, token.value)
+    localStorage.setItem(USER_KEY, JSON.stringify(user.value))
+    return res.user
   }
 
   function logout() {
-    token.value = null
-    currentUser.value = null
-    localStorage.removeItem('lz_ai_token')
-    localStorage.removeItem('lz_ai_user')
-  }
-
-  function switchRole(role: UserRole) {
-    const user = demoUsers.find((u) => u.role === role)
-    if (!user) return
-    currentUser.value = user
-    localStorage.setItem('lz_ai_user', JSON.stringify(user))
+    token.value = ''
+    user.value = null
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(USER_KEY)
   }
 
   return {
-    currentUser,
-    isAuthed,
+    token,
+    user,
+    isAuthenticated,
+    role,
+    roleLabel,
+    displayName,
+    hasRole,
     login,
     logout,
-    switchRole,
-    restoreSession,
   }
 })

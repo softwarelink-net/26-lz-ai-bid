@@ -1,13 +1,21 @@
 /**
  * Cloudflare Worker — allworld
- * 多站点 R2 静态托管 + 26-lz-ai-bid (D1 Allworld / R2 26-lz-ai-bid-assets / ASSETS) 主机分流
+ * 多站点 R2 静态托管 + 26-lz-ai-bid (D1 / R2 26-lz-ai-bid-assets / ASSETS) 主机分流
  */
-import type { Env } from '../functions/env'
-import { handleApi, json } from '../functions/worker'
+import { CORS_HEADERS, json } from '../functions/api/_shared.js'
+import * as login from '../functions/api/auth/login.js'
+import * as me from '../functions/api/auth/me.js'
+import * as dashboard from '../functions/api/dashboard/index.js'
+import * as diagnostic from '../functions/api/diagnostic/index.js'
+import * as sla from '../functions/api/sla/index.js'
+import * as gateway from '../functions/api/gateway/index.js'
+import * as configs from '../functions/api/system/configs.js'
+import * as audit from '../functions/api/audit/index.js'
+import * as tender from '../functions/api/tender/index.js'
 
 const PROJECT_SLUG = '26-lz-ai-bid'
 
-function siteIdFromHost(hostname: string, rootDomain: string) {
+function siteIdFromHost(hostname, rootDomain) {
   const host = hostname.toLowerCase()
   const root = rootDomain.toLowerCase()
   if (host === root) return '_root'
@@ -16,7 +24,7 @@ function siteIdFromHost(hostname: string, rootDomain: string) {
   return host
 }
 
-function isProjectHost(hostname: string, env: Env) {
+function isProjectHost(hostname, env) {
   const host = hostname.toLowerCase()
   const root = (env.ROOT_DOMAIN || 'softwarelink.net').toLowerCase()
   const slug = (env.PROJECT_SLUG || PROJECT_SLUG).toLowerCase()
@@ -25,9 +33,9 @@ function isProjectHost(hostname: string, env: Env) {
   return host === `${slug}.${root}` || host.startsWith(`${slug}.`)
 }
 
-function contentTypeFor(path: string) {
+function contentTypeFor(path) {
   const ext = path.split('.').pop()?.toLowerCase() || ''
-  const map: Record<string, string> = {
+  const map = {
     html: 'text/html; charset=utf-8',
     js: 'application/javascript; charset=utf-8',
     css: 'text/css; charset=utf-8',
@@ -47,7 +55,7 @@ function contentTypeFor(path: string) {
   return map[ext] || 'application/octet-stream'
 }
 
-function emptySitePage(siteId: string) {
+function emptySitePage(siteId) {
   if (siteId === '_root' || siteId === 'www') {
     const html = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -74,7 +82,7 @@ function emptySitePage(siteId: string) {
     <p>softwarelink.net 多站点边缘托管入口（Worker <code>allworld</code> + R2 <code>allworld-sites</code>）。</p>
     <ul>
       <li>子域站点：<code>{site}.softwarelink.net</code> → R2 前缀 <code>{site}/</code></li>
-      <li>泸州疾控 AI 辅助诊断：<a href="https://26-lz-ai-bid.softwarelink.net/">26-lz-ai-bid.softwarelink.net</a></li>
+      <li>泸州疾控 AI 辅助诊断系统：<a href="https://26-lz-ai-bid.softwarelink.net/">26-lz-ai-bid.softwarelink.net</a></li>
     </ul>
   </main>
 </body>
@@ -88,7 +96,7 @@ function emptySitePage(siteId: string) {
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
 }
 
-async function serveR2Site(request: Request, env: Env) {
+async function serveR2Site(request, env) {
   const url = new URL(request.url)
   const siteId = siteIdFromHost(url.hostname, env.ROOT_DOMAIN || 'softwarelink.net')
 
@@ -128,7 +136,7 @@ async function serveR2Site(request: Request, env: Env) {
   return emptySitePage(siteId)
 }
 
-async function serveProjectStorage(request: Request, env: Env) {
+async function serveProjectStorage(request, env) {
   if (!env.STORAGE) return null
   const url = new URL(request.url)
   let pathname = decodeURIComponent(url.pathname)
@@ -147,6 +155,53 @@ async function serveProjectStorage(request: Request, env: Env) {
     return new Response(obj.body, { headers })
   }
   return null
+}
+
+function matchRoute(pathname) {
+  const p = pathname.replace(/\/$/, '') || '/'
+  if (p === '/api/auth/login') return login
+  if (p === '/api/auth/me') return me
+  if (p.startsWith('/api/dashboard')) return dashboard
+  if (p.startsWith('/api/diagnostic')) return diagnostic
+  if (p.startsWith('/api/sla')) return sla
+  if (p.startsWith('/api/gateway')) return gateway
+  if (p.startsWith('/api/system/configs') || p.startsWith('/api/system')) return configs
+  if (p.startsWith('/api/audit')) return audit
+  if (p.startsWith('/api/tender')) return tender
+  return null
+}
+
+async function handleApi(request, env) {
+  const url = new URL(request.url)
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: CORS_HEADERS })
+  }
+
+  if (url.pathname === '/api/health') {
+    return json({
+      success: true,
+      data: {
+        service: PROJECT_SLUG,
+        worker: 'allworld',
+        r2: '26-lz-ai-bid-assets',
+        d1: 'Allworld',
+        ts: new Date().toISOString(),
+      },
+    })
+  }
+
+  const mod = matchRoute(url.pathname)
+  if (!mod) return json({ success: false, error: 'Not Found' }, 404)
+
+  const ctx = { request, env }
+  const method = request.method.toUpperCase()
+  if (method === 'GET' && mod.onRequestGet) return mod.onRequestGet(ctx)
+  if (method === 'POST' && mod.onRequestPost) return mod.onRequestPost(ctx)
+  if (method === 'PUT' && mod.onRequestPut) return mod.onRequestPut(ctx)
+  if (method === 'PATCH' && mod.onRequestPatch) return mod.onRequestPatch(ctx)
+  if (method === 'DELETE' && mod.onRequestDelete) return mod.onRequestDelete(ctx)
+  if (mod.onRequest) return mod.onRequest(ctx)
+  return json({ success: false, error: 'Method Not Allowed' }, 405)
 }
 
 export default {
@@ -177,4 +232,4 @@ export default {
       return json({ success: false, error: message }, 500)
     }
   },
-} satisfies ExportedHandler<Env>
+}

@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse at top left, rgba(8, 145, 178, 0.18) 0%, transparent 42%),
+      radial-gradient(ellipse at top right, rgba(14, 116, 144, 0.12) 0%, transparent 38%),
+      linear-gradient(180deg, #0b1f30 0%, #06121c 55%, #041018 100%);
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-slate-700/80 bg-slate-900/60 backdrop-blur-sm;
+  }
+  .panel-header {
+    @apply border-b border-slate-700/80 px-4 py-3 text-sm font-semibold tracking-wide text-slate-200;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-600 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-700/60;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-rose-500 disabled:opacity-50;
+  }
+  .stat-value {
+    @apply font-mono text-2xl font-semibold tabular-nums text-cyan-300;
+  }
+  .label-muted {
+    @apply text-xs uppercase tracking-wider text-slate-500;
+  }
+  .input-dark {
+    @apply mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-sm text-slate-100 focus:border-cyan-500 focus:ring-cyan-500;
+  }
+  .badge-online {
+    @apply rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300;
+  }
+  .badge-offline {
+    @apply rounded bg-rose-500/15 px-1.5 py-0.5 text-[10px] font-medium text-rose-300;
+  }
+  .badge-degraded {
+    @apply rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300;
+  }
+}

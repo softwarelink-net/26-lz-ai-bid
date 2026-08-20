@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://26-lz-ai-bid.softwarelink.net/sitemap.xml

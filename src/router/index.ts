@@ -1,77 +1,94 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AuthLayout from '../layouts/AuthLayout.vue'
-import MainLayout from '../layouts/MainLayout.vue'
-import { useAuthStore, type UserRole } from '../stores/auth'
+import { setupGuards } from './guard'
+import { ALL_ROLES } from '@/types'
 
-const roleMap: Record<UserRole, string> = {
-  ROLE_SUPER_ADMIN: '超级管理员',
-  ROLE_CDC_EXPERT: '疾控中心专家',
-  ROLE_CLINICAL_DOCTOR: '基层临床医生',
-  ROLE_OPS_ENGINEER: '运维与安全工程师',
-}
+const routes = [
+  {
+    path: '/auth',
+    component: () => import('@/layouts/AuthLayout.vue'),
+    meta: { public: true },
+    children: [
+      {
+        path: 'login',
+        name: 'login',
+        component: () => import('@/views/auth/LoginView.vue'),
+        meta: { public: true, title: '登录' },
+      },
+      {
+        path: 'register',
+        name: 'register',
+        component: () => import('@/views/auth/RegisterView.vue'),
+        meta: { public: true, title: '注册' },
+      },
+      {
+        path: 'reset',
+        name: 'reset',
+        component: () => import('@/views/auth/ResetView.vue'),
+        meta: { public: true, title: '找回密码' },
+      },
+    ],
+  },
+  {
+    path: '/',
+    component: () => import('@/layouts/MainLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'dashboard',
+        component: () => import('@/views/dashboard/DashboardView.vue'),
+        meta: { title: '控制台总览', roles: ALL_ROLES },
+      },
+      {
+        path: 'studio',
+        name: 'studio',
+        component: () => import('@/views/diagnostic/StudioView.vue'),
+        meta: {
+          title: '影像 AI 辅助诊断工作台',
+          roles: ['ROLE_SUPER_ADMIN', 'ROLE_CDC_EXPERT', 'ROLE_CLINICAL_DOCTOR'],
+        },
+      },
+      {
+        path: 'gateway',
+        name: 'gateway',
+        component: () => import('@/views/gateway/GatewayView.vue'),
+        meta: { title: '远程医疗数据接入与脱敏网关', roles: ['ROLE_SUPER_ADMIN', 'ROLE_OPS_ENGINEER'] },
+      },
+      {
+        path: 'ops',
+        name: 'ops',
+        component: () => import('@/views/ops/SlaView.vue'),
+        meta: { title: '运营与 4 小时 SLA 调度', roles: ['ROLE_SUPER_ADMIN', 'ROLE_OPS_ENGINEER'] },
+      },
+      {
+        path: 'bid',
+        name: 'bid',
+        component: () => import('@/views/bid/BidNoticeView.vue'),
+        meta: { title: '招标公告', roles: ALL_ROLES },
+      },
+      {
+        path: 'settings',
+        name: 'settings',
+        component: () => import('@/views/system/SettingsView.vue'),
+        meta: { title: '系统配置与权限', roles: ['ROLE_SUPER_ADMIN'] },
+      },
+      {
+        path: '403',
+        name: 'forbidden',
+        component: () => import('@/views/ForbiddenView.vue'),
+        meta: { title: '无访问权限', public: true },
+      },
+    ],
+  },
+  { path: '/login', redirect: '/auth/login' },
+  { path: '/:pathMatch(.*)*', redirect: '/' },
+]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    {
-      path: '/',
-      component: MainLayout,
-      meta: { requiresAuth: true, title: '控制台总览' },
-      children: [
-        { path: '', name: 'dashboard', component: () => import('../pages/DashboardPage.vue') },
-        {
-          path: 'diagnostic',
-          name: 'diagnostic',
-          component: () => import('../pages/DiagnosticStudioPage.vue'),
-          meta: {
-            requiresRole: ['ROLE_SUPER_ADMIN', 'ROLE_CDC_EXPERT', 'ROLE_CLINICAL_DOCTOR'],
-            title: 'AI 诊断工作台',
-          },
-        },
-        {
-          path: 'gateway',
-          name: 'gateway',
-          component: () => import('../pages/GatewayPage.vue'),
-          meta: { requiresRole: ['ROLE_SUPER_ADMIN', 'ROLE_OPS_ENGINEER'], title: '数据接入与脱敏网关' },
-        },
-        {
-          path: 'operations',
-          name: 'operations',
-          component: () => import('../pages/OperationsPage.vue'),
-          meta: { requiresRole: ['ROLE_SUPER_ADMIN', 'ROLE_OPS_ENGINEER'], title: '运维与 SLA 调度' },
-        },
-        {
-          path: 'system',
-          name: 'system',
-          component: () => import('../pages/SystemConfigPage.vue'),
-          meta: { requiresRole: ['ROLE_SUPER_ADMIN'], title: '系统配置与权限管理' },
-        },
-      ],
-    },
-    {
-      path: '/',
-      component: AuthLayout,
-      children: [{ path: 'login', name: 'login', component: () => import('../pages/LoginPage.vue') }],
-    },
-    { path: '/403', name: 'forbidden', component: () => import('../pages/ForbiddenPage.vue') },
-  ],
+  routes,
+  scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach((to) => {
-  const auth = useAuthStore()
-  auth.restoreSession()
-  if (to.meta.requiresAuth && !auth.isAuthed) {
-    return '/login'
-  }
-  const requiredRoles = to.meta.requiresRole as UserRole[] | undefined
-  if (requiredRoles && auth.currentUser && !requiredRoles.includes(auth.currentUser.role)) {
-    return '/403'
-  }
-  const baseTitle = '泸州疾控 AI 辅助诊断系统'
-  const routeTitle = (to.meta.title as string | undefined) ?? '系统'
-  const roleText = auth.currentUser ? ` - ${roleMap[auth.currentUser.role]}` : ''
-  document.title = `${routeTitle} | ${baseTitle}${roleText}`
-  return true
-})
+setupGuards(router)
 
 export default router

@@ -6,35 +6,36 @@
   "description": "泸州市疾病预防控制中心2026年人工智能辅助诊断信息系统运营服务项目原型（N5105012026000255）",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
+    "preview:worker": "npm run build && wrangler dev",
     "lint": "vue-tsc --noEmit",
     "db:migrate": "wrangler d1 execute Allworld --local --file=./migrations/0001_init.sql",
     "db:seed": "wrangler d1 execute Allworld --local --file=./migrations/0001_init.sql",
     "db:migrate:remote": "wrangler d1 execute Allworld --remote --file=./migrations/0001_init.sql",
     "deploy": "npm run build && wrangler deploy && node scripts/deploy-allworld.mjs 26-lz-ai-bid",
     "deploy:r2": "node scripts/deploy-allworld.mjs 26-lz-ai-bid",
-    "deploy:worker": "npm run build && wrangler deploy",
-    "r2:sync": "node scripts/deploy-allworld.mjs 26-lz-ai-bid"
+    "deploy:worker": "npm run build && wrangler deploy"
   },
   "dependencies": {
-    "lucide-vue-next": "^1.0.0",
-    "pinia": "^4.0.3",
-    "vue": "^3.5.40",
-    "vue-router": "^4.6.4",
-    "zod": "^4.4.3"
+    "echarts": "^5.6.0",
+    "lucide-vue-next": "^0.511.0",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260817.1",
-    "@types/node": "^24.13.3",
-    "@vitejs/plugin-vue": "^6.0.8",
-    "@vue/tsconfig": "^0.9.1",
-    "autoprefixer": "^10.5.4",
-    "postcss": "^8.5.26",
-    "tailwindcss": "^3.4.13",
-    "typescript": "~6.0.2",
-    "vite": "^8.2.0",
-    "vue-tsc": "^3.3.8",
-    "wrangler": "^4.123.0"
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/node": "^22.15.17",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/tsconfig": "^0.7.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.8.3",
+    "vite": "^5.4.19",
+    "vue-tsc": "^2.2.10",
+    "wrangler": "^4.20.0"
   }
 }
