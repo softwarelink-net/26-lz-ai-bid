@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd http://www.google.com/schemas/sitemap-image/1.1 http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
+
+  <!-- 站点首页（唯一含 image:image） -->
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://26-lz-ai-bid.softwarelink.net/docs/assets/dashboard-preview.png</image:loc>
+      <image:title>泸州市疾病预防控制中心2026年人工智能辅助诊断信息系统控制台预览</image:title>
+      <image:caption>肺结核/胸部 DR AI 辅助诊断运营大屏 · 全市区县接入拓扑 · 推理 P95/P99 · 阳性预警 · N5105012026000255</image:caption>
+    </image:image>
+  </url>
+
+  <!-- 招标公告（核心 SEO 落地页） -->
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/bid</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- 登录入口 -->
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/login</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/auth/login</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- 影像 AI 辅助诊断工作台 -->
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/studio</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 远程医疗数据接入与脱敏网关 -->
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/gateway</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- 运营与 4 小时 SLA 调度 -->
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/ops</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- 系统配置与权限 -->
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/settings</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+
+  <!-- 注册 / 找回密码 -->
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/auth/register</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://26-lz-ai-bid.softwarelink.net/auth/reset</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+</urlset>
